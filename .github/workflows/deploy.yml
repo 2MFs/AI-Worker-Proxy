@@ -70,22 +70,39 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Replace ROUTES_CONFIG in wrangler.toml
+      # The routing table is bundled into the Worker as routes.json instead of being
+      # passed as a text binding (Cloudflare caps those at 5.1 kB). One repository
+      # variable holds at most 48 kB, so the config may be pasted in parts:
+      # ROUTES_CONFIG, ROUTES_CONFIG_2 ... ROUTES_CONFIG_9 are concatenated in order.
+      # If none of them is set, the routes.json committed in the repo is used as is.
+      - name: Build routes.json from repository variables
         env:
           ROUTES_CONFIG: ${{ vars.ROUTES_CONFIG }}
+          ROUTES_CONFIG_2: ${{ vars.ROUTES_CONFIG_2 }}
+          ROUTES_CONFIG_3: ${{ vars.ROUTES_CONFIG_3 }}
+          ROUTES_CONFIG_4: ${{ vars.ROUTES_CONFIG_4 }}
+          ROUTES_CONFIG_5: ${{ vars.ROUTES_CONFIG_5 }}
+          ROUTES_CONFIG_6: ${{ vars.ROUTES_CONFIG_6 }}
+          ROUTES_CONFIG_7: ${{ vars.ROUTES_CONFIG_7 }}
+          ROUTES_CONFIG_8: ${{ vars.ROUTES_CONFIG_8 }}
+          ROUTES_CONFIG_9: ${{ vars.ROUTES_CONFIG_9 }}
         run: |
-          # Minify JSON to stay within Cloudflare's 5.1 kB text binding limit
-          MINIFIED_CONFIG=$(echo "$ROUTES_CONFIG" | jq -c .)
-
-          # Remove existing [vars] section and everything after it
-          sed -i '/^\[vars\]/,$d' wrangler.toml
-
-          # Add new [vars] section with GitHub Variable
-          cat >> wrangler.toml << EOF
-
-          [vars]
-          ROUTES_CONFIG = '''${MINIFIED_CONFIG}'''
-          EOF
+          set -euo pipefail
+          CONFIG=""
+          for suffix in "" _2 _3 _4 _5 _6 _7 _8 _9; do
+            name="ROUTES_CONFIG${suffix}"
+            CONFIG="${CONFIG}${!name:-}"
+          done
+          if [ -z "$(printf '%s' "$CONFIG" | tr -d '[:space:]')" ]; then
+            echo "No ROUTES_CONFIG* repository variable set — keeping the committed routes.json"
+            exit 0
+          fi
+          if ! printf '%s' "$CONFIG" | jq . > routes.json.tmp; then
+            echo "::error::ROUTES_CONFIG(_2.._9) do not concatenate into valid JSON. Check the split points — the parts are joined verbatim, in order."
+            exit 1
+          fi
+          mv routes.json.tmp routes.json
+          echo "routes.json: $(wc -c < routes.json) bytes, $(jq 'length' routes.json) routes"
 
       - name: Check Cloudflare credentials
         env:

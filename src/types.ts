@@ -124,7 +124,8 @@ export interface RouteConfig {
 export interface Env {
   AI?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   PROXY_AUTH_TOKEN: string;
-  ROUTES_CONFIG: string;
+  /** Optional override of the bundled routes.json — a JSON string of RouteConfig. */
+  ROUTES_CONFIG?: string;
   [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 

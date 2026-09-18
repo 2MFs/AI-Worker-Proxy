@@ -1,6 +1,9 @@
 import { RouteConfig, ProviderConfig, Env, OpenAIChatRequest, ProviderResponse } from './types';
 import { TokenManager } from './token-manager';
 import { ProxyError } from './utils/error-handler';
+// Routes ship inside the Worker script, so they are not subject to the 5.1 kB
+// limit Cloudflare puts on text bindings. See scripts/generate-routes.mjs.
+import bundledRoutes from '../routes.json';
 
 export class Router {
   private routes: RouteConfig;
@@ -137,15 +140,20 @@ export class Router {
     return [...preferred, ...rest];
   }
 
+  /**
+   * Routes come from the bundled routes.json. A non-empty ROUTES_CONFIG
+   * binding still wins, so existing deployments that inject their routing
+   * table as a var or secret keep working.
+   */
   private parseRoutesConfig(): RouteConfig {
-    try {
-      const configStr = this.env.ROUTES_CONFIG;
-      if (!configStr) {
-        throw new Error('ROUTES_CONFIG not found in environment');
-      }
+    const configStr = this.env.ROUTES_CONFIG?.trim();
+    if (!configStr) {
+      return bundledRoutes as RouteConfig;
+    }
 
-      const config = JSON.parse(configStr);
-      console.log('[Router] Loaded routes:', Object.keys(config));
+    try {
+      const config = JSON.parse(configStr) as RouteConfig;
+      console.log(`[Router] ROUTES_CONFIG override with ${Object.keys(config).length} route(s)`);
       return config;
     } catch (error) {
       console.error('[Router] Failed to parse ROUTES_CONFIG:', error);
