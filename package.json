@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src",
     "format": "prettier --write \"src/**/*.ts\"",
     "type-check": "tsc --noEmit",
-    "check": "tsc --noEmit && eslint src --ext .ts"
+    "check": "tsc --noEmit && eslint src"
   },
   "keywords": [
     "cloudflare",
@@ -47,14 +47,19 @@
   "homepage": "https://github.com/zxcloli666/AI-Worker-Proxy#readme",
   "author": "noname",
   "license": "MIT",
+  "engines": {
+    "node": ">=26"
+  },
+  "packageManager": "pnpm@11.4.0",
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260526.1",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.57.1",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3",
-    "wrangler": "^4.95.0"
+    "@cloudflare/workers-types": "^5.20260918.1",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.1",
+    "eslint": "^10.10.0",
+    "prettier": "^3.9.8",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "wrangler": "^4.135.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",

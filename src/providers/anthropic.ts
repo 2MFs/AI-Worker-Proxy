@@ -400,7 +400,7 @@ export class AnthropicProvider extends BaseProvider {
             let parsedInput: unknown;
             try {
               parsedInput = JSON.parse(toolCall.function.arguments);
-            } catch (e) {
+            } catch {
               // Fall back to empty object if arguments are not valid JSON
               parsedInput = {};
             }
