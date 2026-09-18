@@ -24,4 +24,7 @@ DEEPSEEK_KEY=sk-...
 # TokenHub API Keys (Anthropic-compatible)
 THOENHUB_KEY=th-...
 
-# Add more keys as needed based on your ROUTES_CONFIG in wrangler.toml
+# Add more keys as needed, based on the `apiKeys` names used in routes.json
+
+# Optional: overrides the bundled routes.json at runtime
+# ROUTES_CONFIG={"test":[{"provider":"google","model":"gemini-2.0-flash-exp","apiKeys":["GOOGLE_KEY_1"]}]}

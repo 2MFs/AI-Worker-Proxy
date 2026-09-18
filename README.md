@@ -83,6 +83,13 @@ This allows you to update your model lists or failover logic without anyone seei
 4. Name: `ROUTES_CONFIG`
 5. Value: Paste your JSON configuration here.
 
+> **Big configs are fine.** The deploy workflow writes the variable into `routes.json`, which is
+> bundled into the Worker script — there is no 5.1 kB text-binding limit any more. A single GitHub
+> variable still holds at most 48 kB, so if your JSON is larger, cut it anywhere and paste the rest
+> into `ROUTES_CONFIG_2`, `ROUTES_CONFIG_3` ... up to `ROUTES_CONFIG_9`. The workflow concatenates
+> the parts verbatim, in order, and fails with a clear message if the result is not valid JSON.
+> With no `ROUTES_CONFIG*` variable set, the `routes.json` committed in the repo is used as is.
+
 **Example `ROUTES_CONFIG` JSON:**
 ```json
 {
@@ -117,7 +124,7 @@ This allows you to update your model lists or failover logic without anyone seei
 ```
 
 **How to apply changes:**
-After saving the variable, just go to the **Actions** tab and run the **"Deploy to Cloudflare"** workflow again. It will inject your new config automatically.
+After saving the variable, just go to the **Actions** tab and run the **"Deploy to Cloudflare"** workflow again. It writes your config into `routes.json` and bundles it into the Worker automatically.
 
 ---
 
@@ -217,9 +224,9 @@ If you want to add a third-party API provider that's not in the default configur
 3. Add your API key as a secret, e.g. `MY_PROVIDER_KEY`
 4. Click **"Save and Deploy"**
 
-### Step 2: Update ROUTES_CONFIG
+### Step 2: Update the routing config
 
-Edit the `ROUTES_CONFIG` GitHub Variable (or your local `wrangler.toml`) and add your provider route:
+Edit the `ROUTES_CONFIG` GitHub Variable (or `routes.json` in the repo, if you deploy by hand) and add your provider route:
 
 ```json
 {

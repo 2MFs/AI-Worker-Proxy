@@ -2,10 +2,17 @@
 
 ## 🎯 How It Works
 
-- **`ROUTES_CONFIG`** → GitHub Variable → injected into wrangler.toml during deploy
+- **`ROUTES_CONFIG`** → GitHub Variable → written to `routes.json` during deploy → bundled into the Worker script
 - **Secrets** (PROXY_AUTH_TOKEN, API keys) → Cloudflare Dashboard (manually, persist across deploys)
 
 **Key point:** Cloudflare Secrets are NEVER deleted by wrangler deploy. Set them once in Dashboard, they stay forever.
+
+**Why a file and not a var:** a text binding (`[vars]`) may not exceed 5.1 kB — a real routing
+table hits that instantly (`Text binding 'ROUTES_CONFIG' is too large ... [code: 10054]`).
+`routes.json` is part of the script, which may be several MB, so the config can be any size.
+The `routes.json` committed in the repo is only an example and is used when no `ROUTES_CONFIG*`
+variable is set. A `ROUTES_CONFIG` var/secret on the Worker itself still overrides the bundled
+file at runtime, for setups that relied on that.
 
 ---
 
@@ -39,6 +46,13 @@
 3. Name: `ROUTES_CONFIG`
 
 4. Value (JSON, can be formatted):
+
+One repository variable holds at most **48 kB**. If your config is bigger, cut it at any
+character and paste the remainder into `ROUTES_CONFIG_2`, then `ROUTES_CONFIG_3` ... up to
+`ROUTES_CONFIG_9`. The deploy workflow concatenates whichever exist, in order, verbatim — the
+split may fall in the middle of a line or even a word — and then parses the result as JSON.
+If the pieces do not join into valid JSON, the deploy stops with an explicit error.
+
 ```json
 {
   "deep-think": [
@@ -81,8 +95,8 @@ git push origin main
 ```
 
 GitHub Actions will:
-1. Replace `ROUTES_CONFIG` in wrangler.toml with your GitHub Variable
-2. Deploy to Cloudflare
+1. Write `ROUTES_CONFIG` (+ `ROUTES_CONFIG_2` ... `_9`) into `routes.json`
+2. Deploy to Cloudflare, with `routes.json` bundled into the Worker script
 3. Your Dashboard secrets remain untouched
 
 ---
@@ -114,6 +128,7 @@ PROXY_AUTH_TOKEN=local-dev-token
 ANTHROPIC_KEY_1=sk-ant-xxxxx
 GOOGLE_KEY_1=AIzaxxxxx
 
+# Optional: overrides the bundled routes.json at runtime
 ROUTES_CONFIG={"test":[{"provider":"anthropic","model":"claude-opus-4","apiKeys":["ANTHROPIC_KEY_1"]}]}
 ```
 
@@ -149,7 +164,10 @@ Wrangler will automatically load variables from `.dev.vars`.
 1. Check GitHub Actions logs - did the workflow run?
 2. Check if GitHub Variable `ROUTES_CONFIG` is set correctly
 3. Make sure the JSON is valid (use a JSON validator)
-4. Check the workflow replaced the [vars] section (look at logs)
+4. Look for the "Build routes.json from repository variables" step in the logs — it prints the
+   size and the number of routes it wrote
+5. If you split the config, check that every part (`ROUTES_CONFIG_2` ... `_9`) is still there
+   and in the right order
 
 ### Want to add a new API provider
 
@@ -175,10 +193,11 @@ Wrangler will automatically load variables from `.dev.vars`.
 
 **The Problem:**
 - Wrangler ALWAYS overwrites vars defined in wrangler.toml [vars] section
+- A text binding is limited to 5.1 kB, which a real routing table exceeds
 - But Cloudflare Secrets are NEVER deleted by wrangler deploy
 
 **The Solution:**
-- `ROUTES_CONFIG` goes in [vars] → GitHub Actions replaces it before deploy
+- `ROUTES_CONFIG` (+ `_2` ... `_9`) → GitHub Actions writes `routes.json` → bundled into the script
 - Sensitive data (tokens, API keys) goes in Cloudflare Secrets → never touched
 
 **Result:**
