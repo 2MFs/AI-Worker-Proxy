@@ -4,6 +4,8 @@ Thank you for your interest in contributing to AI Worker Proxy!
 
 ## Development Setup
 
+This project uses Node 26 (see `.nvmrc`) and pnpm (see `packageManager` in `package.json`).
+
 1. **Fork and clone the repository**
 
 ```bash
@@ -14,7 +16,7 @@ cd AI-Worker-Proxy
 2. **Install dependencies**
 
 ```bash
-npm install
+pnpm install
 ```
 
 3. **Set up environment variables**
@@ -27,7 +29,7 @@ cp .dev.vars.example .dev.vars
 4. **Run locally**
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ## Code Style
@@ -36,13 +38,13 @@ This project uses ESLint and Prettier for code formatting.
 
 ```bash
 # Check linting
-npm run lint
+pnpm run lint
 
 # Check types
-npm run type-check
+pnpm run type-check
 
 # Format code
-npm run format
+pnpm run format
 ```
 
 ## Adding a New Provider
@@ -75,11 +77,12 @@ Before submitting a PR:
 1. Run all checks:
 
 ```bash
-npm run lint
-npm run type-check
+pnpm run lint
+pnpm run type-check
+pnpm exec wrangler deploy --dry-run --outdir dist
 ```
 
-2. Test locally with `npm run dev`
+2. Test locally with `pnpm run dev`
 3. Test with different providers and routes
 4. Test both streaming and non-streaming modes
 5. Test error handling and failover

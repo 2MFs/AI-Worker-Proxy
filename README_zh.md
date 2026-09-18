@@ -87,6 +87,12 @@
 4. 名称：`ROUTES_CONFIG`
 5. 值：粘贴你的 JSON 配置
 
+> **配置再大也没关系。** 部署工作流会把变量写入 `routes.json` 并打包进 Worker 脚本，
+> 不再受 5.1 kB 文本绑定上限的限制。单个 GitHub 变量最多 48 kB，配置更大时可以在任意位置
+> 截断，把余下部分粘贴到 `ROUTES_CONFIG_2`、`ROUTES_CONFIG_3` …… 直到 `ROUTES_CONFIG_9`；
+> 工作流会按顺序原样拼接，拼接结果不是合法 JSON 时会明确报错。若未设置任何
+> `ROUTES_CONFIG*` 变量，则直接使用仓库中提交的 `routes.json`。
+
 **`ROUTES_CONFIG` JSON 示例：**
 
 ```json
@@ -226,9 +232,9 @@ curl -N -X POST https://ai-proxy.YOUR-USERNAME.workers.dev/anthropic/v1/messages
 3. 将你的 API Key 添加为加密变量，例如 `MY_PROVIDER_KEY`
 4. 点击 **"Save and Deploy"**
 
-### 第二步：更新 ROUTES_CONFIG
+### 第二步：更新路由配置
 
-编辑 `ROUTES_CONFIG` 这个 GitHub Variable（或本地的 `wrangler.toml`），添加你的供应商路由：
+编辑 `ROUTES_CONFIG` 这个 GitHub Variable（手动部署时则编辑仓库里的 `routes.json`），添加你的供应商路由：
 
 ```json
 {

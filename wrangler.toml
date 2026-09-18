@@ -1,6 +1,6 @@
 name = "ai-worker-proxy"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2026-09-15"
 
 # Cloudflare AI binding (optional)
 [ai]
@@ -17,77 +17,18 @@ persist = true
 head_sampling_rate = 1
 
 # ====================================================================================
-# EXAMPLE CONFIGURATION
+# ROUTING
 # ====================================================================================
-# This [vars] section contains example configuration.
-# GitHub Actions will REPLACE it with real ROUTES_CONFIG from GitHub Variable.
-# Secrets (PROXY_AUTH_TOKEN, API keys) are set in Cloudflare Dashboard manually.
-# ====================================================================================
-
-[vars]
-# Model routing configuration (example - will be replaced by GitHub Actions)
-ROUTES_CONFIG = '''
-{
-  "deep-think": [
-    {
-      "provider": "anthropic",
-      "model": "claude-opus-4-20250514",
-      "apiKeys": ["ANTHROPIC_KEY_1", "ANTHROPIC_KEY_2"]
-    }
-  ],
-  "fast": [
-    {
-      "provider": "google",
-      "model": "gemini-2.0-flash-exp",
-      "apiKeys": ["GOOGLE_KEY_1"]
-    }
-  ],
-  "nvidia": [
-    {
-      "provider": "openai-compatible",
-      "baseUrl": "https://integrate.api.nvidia.com/v1",
-      "model": "nvidia/llama-3.1-nemotron-70b-instruct",
-      "apiKeys": ["NVIDIA_KEY_1"]
-    }
-  ],
-  "search": [
-    {
-      "provider": "google",
-      "model": "gemini-3-flash-preview",
-      "apiKeys": ["GOOGLE_KEY_1"],
-      "grounding": true
-    }
-  ],
-  "deepseek-v4-flash": [
-    {
-      "provider": "openai-compatible",
-      "baseUrl": "https://api.deepseek.com",
-      "model": "deepseek-v4-flash",
-      "apiKeys": ["DEEPSEEK_KEY"]
-    }
-  ],
-  "deepseek-v4-pro": [
-    {
-      "provider": "openai-compatible",
-      "baseUrl": "https://api.deepseek.com",
-      "model": "deepseek-v4-pro",
-      "apiKeys": ["DEEPSEEK_KEY"]
-    }
-  ],
-  "glm-5.2": [
-    {
-      "provider": "anthropic-compatible",
-      "baseUrl": "https://api.tokenhub.market",
-      "model": "glm-5.2",
-      "apiKeys": ["THOENHUB_KEY"]
-    }
-  ]
-}
-'''
-
-# Secrets to set in Cloudflare Dashboard:
+# Model routing lives in routes.json and is bundled into the Worker script, so it is
+# not limited to the 5.1 kB Cloudflare allows for a text binding. The file committed
+# here is only an example: the deploy workflow overwrites it with the contents of the
+# ROUTES_CONFIG (plus ROUTES_CONFIG_2 ... _9) repository variables before deploying.
+#
+# A ROUTES_CONFIG var/secret on the Worker itself is still honoured at runtime as an
+# override. Do NOT add it to a [vars] block here — it would silently shadow routes.json.
+#
+# Secrets to set in the Cloudflare Dashboard (or with `wrangler secret put`):
 # - PROXY_AUTH_TOKEN
-# - ANTHROPIC_KEY_1, ANTHROPIC_KEY_2
-# - GOOGLE_KEY_1
-# - NVIDIA_KEY_1
-# - OPENAI_KEY_1, GROQ_KEY_1, etc.
+# - every key name referenced by `apiKeys` in routes.json
+#   (GOOGLE_KEY_1, NVIDIA_KEY_1, OPENROUTER_KEY_1, ANTHROPIC_KEY_1, ...)
+# ====================================================================================
